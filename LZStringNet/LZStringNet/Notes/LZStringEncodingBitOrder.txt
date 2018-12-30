@@ -1,0 +1,1 @@
+﻿LZString store data in reversed bit order.

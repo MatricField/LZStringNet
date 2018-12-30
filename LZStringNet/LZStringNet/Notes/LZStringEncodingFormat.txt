@@ -1,0 +1,5 @@
+﻿Format EncodedStructure =
+   [dictionary index] or
+   [2] or
+   [1; 16 bit data point] or
+   [0; 8 bit data point] or
