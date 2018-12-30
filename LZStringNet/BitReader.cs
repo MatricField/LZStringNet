@@ -25,7 +25,7 @@ namespace LZStringNet
             RawData = ((IEnumerable<int>)rawData).GetEnumerator();
         }
 
-        public int ReadBits(uint _numBits)
+        public int ReadBits(int _numBits)
         {
             var numBits = Convert.ToInt32(_numBits);
             int ret = 0;

@@ -28,8 +28,8 @@ namespace LZStringNet
                 { Masks.Char16Bit, null},
                 { Masks.EndOfStream, null}
             };
-            var codePointWidth = 2u; // width of code point in bits
-            var dictionaryCapacity = 4u; // possible number of code points under current width, value = 2 ^ codePointWidth
+            var codePointWidth = 2; // width of code point in bits
+            var dictionaryCapacity = 4; // possible number of code points under current width, value = 2 ^ codePointWidth
 
             void AddToDictionary(string value)
             {
