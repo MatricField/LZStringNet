@@ -7,19 +7,22 @@ namespace LZStringNet
 {
     public static class LZString
     {
-        public static string DecompressFromBase64(string input) =>
-            DecompressImpl(input, Predefined.Base64Encoding);
-
-        private static string DecompressImpl(string inputStream, DataEncoding encoding)
+        public static string DecompressFromBase64(string input)
         {
-            switch (inputStream)
+            switch (input)
             {
                 case null:
                     return "";
                 case "":
                     return null;
-            }
+                default:
+                    return DecompressImpl(input, Predefined.Base64Encoding).ToString();
+            };
+        }
 
+
+        private static StringBuilder DecompressImpl(string inputStream, DataEncoding encoding)
+        {
             var bitReader = new BitReader(inputStream, encoding);
 
             var reverseDictionary = new Dictionary<int, string>()
@@ -95,7 +98,7 @@ namespace LZStringNet
                     w = entry;
                 }
             }
-            return result.ToString();
+            return result;
         }
     }
 }
