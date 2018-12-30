@@ -12,17 +12,24 @@ namespace LZStringNet
 
         public IReadOnlyDictionary<char, int> ReverseCodePage { get; }
 
+        public BitReversalTable BitReversalTable { get; }
+
         public DataEncoding(string alphabet, int bitsPerChar):
-            this(bitsPerChar, alphabet, GetReverseCodePage(alphabet))
+            this(bitsPerChar, alphabet, GetReverseCodePage(alphabet), BitReversalTable.Get(bitsPerChar))
         {
 
         }
 
-        public DataEncoding(int bitsPerChar, string codepage, IReadOnlyDictionary<char, int> reverseCodePage)
+        public DataEncoding(
+            int bitsPerChar, 
+            string codepage, 
+            IReadOnlyDictionary<char, int> reverseCodePage, 
+            BitReversalTable bitReversalTable)
         {
             BitsPerChar = bitsPerChar;
             CodePage = codepage;
             ReverseCodePage = reverseCodePage;
+            BitReversalTable = bitReversalTable;
         }
 
         private static Dictionary<string, IReadOnlyDictionary<char, int>> ReverseCodePages { get; }

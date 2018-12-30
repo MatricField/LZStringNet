@@ -8,26 +8,31 @@ namespace LZStringNet
 {
     public class BitReader
     {
-        private IEnumerator<int> RawData;
+        private readonly IEnumerable<int> RawData;
+
+        private readonly int BitsInBufferMax;
+
+        private IEnumerator<int> DataIter;
 
         private int Buffer;
 
         private int BitsInBuffer;
 
-        private int BitsInBufferMax;
-
         public BitReader(string input, DataEncoding encoding)
         {
-            var rawData = new int[input.Length];
+            var rawData = new List<int>(input.Length);
             BitsInBufferMax = encoding.BitsPerChar;
-            var lookUpTable = BitReversalTable.Get(encoding.BitsPerChar);
-            Parallel.For(0, input.Length, (i) => rawData[i] = lookUpTable[encoding.ReverseCodePage[input[i]]]);
-            RawData = ((IEnumerable<int>)rawData).GetEnumerator();
+            var bitReversalTable = encoding.BitReversalTable;
+            foreach (var c in input)
+            {
+                rawData.Add(bitReversalTable[encoding.ReverseCodePage[c]]);
+            }
+            RawData = rawData;
+            DataIter = ((IEnumerable<int>)rawData).GetEnumerator();
         }
 
-        public int ReadBits(int _numBits)
+        public int ReadBits(int numBits)
         {
-            var numBits = Convert.ToInt32(_numBits);
             int ret = 0;
             for(int bitsRead = 0; bitsRead != numBits;)
             {
@@ -60,9 +65,9 @@ namespace LZStringNet
 
         private bool FetchBits()
         {
-            if(RawData.MoveNext())
+            if(DataIter.MoveNext())
             {
-                Buffer = RawData.Current;
+                Buffer = DataIter.Current;
                 BitsInBuffer = BitsInBufferMax;
                 return true;
             }
