@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace LZStringNet
 {
@@ -10,7 +8,7 @@ namespace LZStringNet
 
         private readonly DataEncoding Encoding;
 
-        private int BitsInBuffer;
+        private int BufferCapacity;
 
         private int Buffer;
 
@@ -18,20 +16,53 @@ namespace LZStringNet
         {
             OutputStream = stream;
             Encoding = encoding;
-            BitsInBuffer = encoding.BitsPerChar;
+            BufferCapacity = encoding.BitsPerChar;
         }
 
-        public void WriteBits(int data, int count)
+        public void WriteBits(int data, int numBits)
         {
-            throw new NotImplementedException();
+            for (int bitsWritten = 0; bitsWritten != numBits;)
+            {
+                if (BufferCapacity == 0)
+                {
+                    WriteBuffer();
+                }
+                var needToWrite = numBits - bitsWritten;
+                var bitsInBuffer = Encoding.BitsPerChar - BufferCapacity;
+                if (BufferCapacity <= needToWrite)
+                {
+                    var mask = 0;
+                    for (int i = 0; i < BufferCapacity; ++i)
+                    {
+                        mask |= 1 << i;
+                    }
+                    
+                    Buffer |= (data & mask) << bitsInBuffer;
+                    data >>= BufferCapacity;
+                    bitsWritten += BufferCapacity;
+                    BufferCapacity -= BufferCapacity;
+                }
+                else
+                {
+                    Buffer |= data << bitsInBuffer;
+                    BufferCapacity -= needToWrite;
+                    bitsWritten += needToWrite;
+                }
+            }
         }
 
-        public void Flush() => WriteBuffer();
+        public void Flush()
+        {
+            if(BufferCapacity != Encoding.BitsPerChar)
+            {
+                WriteBuffer();
+            }
+        }
 
         private void WriteBuffer()
         {
             OutputStream.Append(Encoding.CodePage[Encoding.BitReversalTable[Buffer]]);
-            BitsInBuffer = Encoding.BitsPerChar;
+            BufferCapacity = Encoding.BitsPerChar;
             Buffer = 0;
         }
     }

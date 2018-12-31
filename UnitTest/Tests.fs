@@ -18,7 +18,7 @@ let call name (str: string) =
     let str' = if str=null then JsValue.Null else JsValue str 
     (func.Invoke str').AsString()
 
-[<Property()>]
+[<Property>]
 let ``can decompress from base64`` (raw: string)=
     let compressed = call "compressToBase64" raw
     let decompressed = LZNew.DecompressFromBase64 compressed
