@@ -12,16 +12,23 @@ namespace LZStringNet.Algorithms
 
         public Compressor(IEncoder encoder)
         {
-            this.encoder = encoder;
+            this.encoder = encoder ?? throw new ArgumentNullException();
         }
 
         public void Compress(string uncompressed)
         {
-            foreach (var c in uncompressed)
+            if(null == uncompressed)
             {
-                CompressNext(c);
+                throw new ArgumentNullException();
             }
-            WriteSegment();
+            else if ("" != uncompressed)
+            {
+                foreach (var c in uncompressed)
+                {
+                    CompressNext(c);
+                }
+                WriteSegment();
+            }
         }
 
         private Dictionary<string, int> segmentDict = new Dictionary<string, int>();

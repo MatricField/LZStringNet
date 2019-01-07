@@ -20,12 +20,35 @@ namespace LZStringNet.Algorithms
 
         public Decompressor(StringBuilder output)
         {
-            this.output = output;
+            this.output = output ?? throw new ArgumentNullException();
+        }
+
+        public void Decompress(IDecoder input)
+        {
+            this.input = input ?? throw new ArgumentNullException();
+            endOfStreamReached = false;
+            w = ReadNextSegment(out _);
+            if (!endOfStreamReached)
+            {
+                output.Append(w);
+                AddToDictionary(w);
+                for (var entry = ReadNextSegment(out var isCharEntry);
+                    !endOfStreamReached;
+                    entry = ReadNextSegment(out isCharEntry))
+                {
+                    if (isCharEntry)
+                    {
+                        AddToDictionary(entry);
+                    }
+                    output.Append(entry);
+                    AddToDictionary(w + entry[0]);
+                    w = entry;
+                }
+            }
+            this.input = null;
         }
 
         private string w = "";
-
-        private bool endOfStreamReached = false;
 
         private void AddToDictionary(string segment)
         {
@@ -36,6 +59,8 @@ namespace LZStringNet.Algorithms
                 dictionaryCapacity *= 2;
             }
         }
+
+        private bool endOfStreamReached;
 
         private string ReadNextSegment(out bool isCharEntry)
         {
@@ -76,29 +101,5 @@ namespace LZStringNet.Algorithms
         }
 
         private IDecoder input;
-
-        public void Decompress(IDecoder input)
-        {
-            this.input = input;
-            w = ReadNextSegment(out _);
-            if(!endOfStreamReached)
-            {
-                output.Append(w);
-                AddToDictionary(w);
-                for (var entry = ReadNextSegment(out var isCharEntry);
-                    !endOfStreamReached;
-                    entry = ReadNextSegment(out isCharEntry))
-                {
-                    if (isCharEntry)
-                    {
-                        AddToDictionary(entry);
-                    }
-                    output.Append(entry);
-                    AddToDictionary(w + entry[0]);
-                    w = entry;
-                }
-            }
-            this.input = null;
-        }
     }
 }
