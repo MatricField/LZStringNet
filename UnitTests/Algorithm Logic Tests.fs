@@ -1,5 +1,6 @@
 ﻿module Algorithm_Logic_Tests
 
+open System
 open System.IO
 open System.Text
 open System.Collections.Generic
@@ -9,13 +10,13 @@ open LZStringNet.IO
 open LZStringNet.Algorithms
 open System.Net
 
-let doTest input =
+let ``encoding and decosing is compatible`` input =
     let buffer =
         let buffer = List<int>()
         let encoder =
             {
                 new IEncoder with
-                    member x.WriteBits(data, numBits) =
+                    member x.WriteBits(data, _) =
                         buffer.Add(data)
                         ()
                     member x.Flush() = ()
@@ -29,7 +30,7 @@ let doTest input =
             let mutable iter = buffer.GetEnumerator()
             {
                 new IDecoder with     
-                    member x.ReadBits(numBits) =
+                    member x.ReadBits(_) =
                         iter.MoveNext() |> ignore
                         iter.Current
             }
@@ -39,25 +40,50 @@ let doTest input =
         builder.ToString()
     input = decompressed
 
-[<Property>]
-let ``can process random wiki main page``() =
-    let ok, text =
-        let url = "https://en.wikipedia.org/wiki/Main_Page"
-        let response = 
-            let request = WebRequest.Create(url) :?> HttpWebRequest
-            request.GetResponse() :?> HttpWebResponse
-        if response.StatusCode = HttpStatusCode.OK then 
-            use reader =
-                let stream = response.GetResponseStream()
-                if response.CharacterSet = null then
-                    new StreamReader(stream)
-                else
-                    new StreamReader(stream, Encoding.GetEncoding(response.CharacterSet))
-            (true, reader.ReadToEnd())
+let tryGetResponse (uri:string) =
+    let request = WebRequest.Create(uri) :?> HttpWebRequest
+    let response = request.GetResponse() :?> HttpWebResponse
+    if (response.StatusCode = HttpStatusCode.OK) then
+        Some response
+    else
+        None
+
+let fetchHtml (response:HttpWebResponse) =
+    use reader =
+        let stream = response.GetResponseStream()
+        if response.CharacterSet = null then
+            new StreamReader(stream)
         else
-            (false, "")
-    ok ==> doTest(text)
+            new StreamReader(stream, Encoding.GetEncoding(response.CharacterSet))
+    reader.ReadToEnd()
+
+let [<Literal>] randomWikiUri = "http://en.wikipedia.org/wiki/Special:Random"
+
+let tryGetRandomWikiPage() =
+    match tryGetResponse randomWikiUri with
+    |None -> None
+    |Some response ->
+        Some (response.ResponseUri.AbsolutePath, fetchHtml response)
+
+type RandomWikiPageGenerator =
+    static member HtmlUriPair() =
+        {
+            new Arbitrary<string * string>() with
+                override x.Generator =
+                    gen{
+                        return
+                            Seq.initInfinite (fun _ -> tryGetRandomWikiPage())
+                            |>Seq.pick id
+                    }
+                override x.Shrinker _ = Seq.empty
+        }
+
+[<Property(Arbitrary = [|typeof<RandomWikiPageGenerator>|])>]
+let ``can process random wiki page`` (uri: string, text) =
+    ``encoding and decosing is compatible``(text)
 
 [<Property>]
 let ``compressor logics and decompressor is compatible`` (input: string) =
-    (input <> null && input <> "") ==> doTest(input)
+    let doTest() =
+        ``encoding and decosing is compatible`` input
+    (input <> null && input <> "") ==> doTest

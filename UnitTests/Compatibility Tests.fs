@@ -25,7 +25,6 @@ let ``can decompress from base64`` (raw: string)=
 
 [<Property>]
 let ``can compress to base64`` (raw: string)=
-
     let compressed = LZNew.CompressToBase64 raw
     let decompressed = call "decompressFromBase64" compressed
     raw = decompressed

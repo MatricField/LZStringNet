@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace LZStringNet.IO
+﻿namespace LZStringNet.IO
 {
     public static class PredefinedEncodings
     {

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
 using LZStringNet.IO;
 
 namespace LZStringNet.Algorithms
 {
     public class Compressor
     {
-        private const int INITIAL_SEGDICT_COUNT = 3;
-
         private IEncoder encoder;
 
         public Compressor(IEncoder encoder)
@@ -31,13 +31,8 @@ namespace LZStringNet.Algorithms
             }
         }
 
-        private Dictionary<string, int> segmentDict = new Dictionary<string, int>();
+        private ShiftedDictionary<string, int> dictionary = new ShiftedDictionary<string, int>();
 
-        private int SegmentDictCount => segmentDict.Count + INITIAL_SEGDICT_COUNT;
-
-        private int dictCapacity = 4;
-
-        private int codePointWidth = 2;
 
         private string segment = "";
 
@@ -46,13 +41,13 @@ namespace LZStringNet.Algorithms
         private void CompressNext(char c)
         {
             var cstr = c.ToString();
-            if(!segmentDict.ContainsKey(cstr))
+            if(!dictionary.ContainsKey(cstr))
             {
-                newChars.Add(cstr, codePointWidth);
+                newChars.Add(cstr, dictionary.CodePointWidth);
                 AddToDictionary(cstr);
             }
             var newSeg = segment + cstr;
-            if(segmentDict.ContainsKey(newSeg))
+            if(dictionary.ContainsKey(newSeg))
             {
                 segment = newSeg;
             }
@@ -64,14 +59,10 @@ namespace LZStringNet.Algorithms
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void AddToDictionary(string newSeg)
         {
-            segmentDict.Add(newSeg, SegmentDictCount);
-            if (SegmentDictCount == dictCapacity)
-            {
-                codePointWidth++;
-                dictCapacity *= 2;
-            }
+            dictionary.Add(newSeg, dictionary.Count);
         }
 
         private void WriteSegment()
@@ -94,13 +85,13 @@ namespace LZStringNet.Algorithms
             }
             else
             {
-                encoder.WriteBits(segmentDict[segment], codePointWidth);
+                encoder.WriteBits(dictionary[segment], dictionary.CodePointWidth);
             }
         }
 
         public void MarkEndOfStream()
         {
-            encoder.WriteBits(Masks.EndOfStream, codePointWidth);
+            encoder.WriteBits(Masks.EndOfStream, dictionary.CodePointWidth);
             encoder.Flush();
         }
     }

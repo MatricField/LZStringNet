@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Runtime.CompilerServices;
+
 using LZStringNet.IO;
+using static LZStringNet.Algorithms.Masks;
 
 namespace LZStringNet.Algorithms
 {
-    using static Masks;
     public class Decompressor
     {
-        private Dictionary<int, string> reverseDictionary =
-            new Dictionary<int, string>();
-
-        private int codePointWidth = 2;
-        private int dictionaryCapacity = 4;
-        private int actualDicionaryCount => reverseDictionary.Count + 3;
+        private ShiftedDictionary<int, string> reverseDictionary =
+            new ShiftedDictionary<int, string>();
 
         private StringBuilder output;
 
@@ -22,6 +19,8 @@ namespace LZStringNet.Algorithms
         {
             this.output = output ?? throw new ArgumentNullException();
         }
+
+        private IDecoder input;
 
         public void Decompress(IDecoder input)
         {
@@ -50,21 +49,17 @@ namespace LZStringNet.Algorithms
 
         private string w = "";
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void AddToDictionary(string segment)
         {
-            reverseDictionary.Add(actualDicionaryCount, segment);
-            if (actualDicionaryCount == dictionaryCapacity)
-            {
-                codePointWidth++;
-                dictionaryCapacity *= 2;
-            }
+            reverseDictionary.Add(reverseDictionary.Count, segment);
         }
 
         private bool endOfStreamReached;
 
         private string ReadNextSegment(out bool isCharEntry)
         {
-            var codePoint = input.ReadBits(codePointWidth);
+            var codePoint = input.ReadBits(reverseDictionary.CodePointWidth);
             var ret = "";
             switch (codePoint)
             {
@@ -86,7 +81,7 @@ namespace LZStringNet.Algorithms
                     {
                         isCharEntry = false;
                     }
-                    else if (codePoint == actualDicionaryCount)
+                    else if (codePoint == reverseDictionary.Count)
                     {
                         ret = w + w[0];
                         isCharEntry = false;
@@ -98,8 +93,6 @@ namespace LZStringNet.Algorithms
                     break;
             }
             return ret;
-        }
-
-        private IDecoder input;
+        } 
     }
 }
