@@ -1,5 +1,7 @@
-﻿using LZStringNet.IO;
-using System.Text;
+﻿using System.Text;
+using LZStringNet.IO;
+using LZStringNet.Algorithms;
+
 namespace LZStringNet
 {
     public static class LZString

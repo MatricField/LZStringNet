@@ -1,4 +1,4 @@
-﻿namespace LZStringNet
+﻿namespace LZStringNet.Algorithms
 {
     internal static class Masks
     {

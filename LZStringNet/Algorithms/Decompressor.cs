@@ -1,12 +1,12 @@
-﻿using LZStringNet.IO;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using static LZStringNet.Masks;
+using LZStringNet.IO;
 
-namespace LZStringNet
+namespace LZStringNet.Algorithms
 {
+    using static Masks;
     public class Decompressor
     {
         private Dictionary<int, string> reverseDictionary =

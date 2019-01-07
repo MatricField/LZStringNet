@@ -1,8 +1,7 @@
-module Tests
+module Compatibility_Tests
 
 open System.IO
-open NUnit.Framework
-open FsCheck.NUnit
+open FsCheck.Xunit
 open Jint.Native
 
 type LZNew = LZStringNet.LZString
@@ -22,11 +21,11 @@ let call name (str: string) =
 let ``can decompress from base64`` (raw: string)=
     let compressed = call "compressToBase64" raw
     let decompressed = LZNew.DecompressFromBase64 compressed
-    Assert.AreEqual(raw, decompressed)
+    raw = decompressed
 
 [<Property>]
 let ``can compress to base64`` (raw: string)=
 
     let compressed = LZNew.CompressToBase64 raw
     let decompressed = call "decompressFromBase64" compressed
-    Assert.AreEqual(raw, decompressed)
+    raw = decompressed

@@ -1,11 +1,10 @@
-﻿using LZStringNet.IO;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
+using LZStringNet.IO;
 
-namespace LZStringNet
+namespace LZStringNet.Algorithms
 {
-    internal class Compressor
+    public class Compressor
     {
         private const int INITIAL_SEGDICT_COUNT = 3;
 
@@ -85,12 +84,10 @@ namespace LZStringNet
                     encoder.WriteBits(charCode, 16);
                 }
                 newChars.Remove(segment);
-                Console.WriteLine($"Char: {Regex.Escape(c.ToString())}");
             }
             else
             {
                 encoder.WriteBits(segmentDict[segment], codePointWidth);
-                Console.WriteLine($"Segment: {Regex.Escape(segment)}");
             }
         }
 
