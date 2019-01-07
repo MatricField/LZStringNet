@@ -86,7 +86,7 @@ namespace LZStringNet.Algorithms
                     {
                         isCharEntry = false;
                     }
-                    else if (codePoint == reverseDictionary.Count)
+                    else if (codePoint == actualDicionaryCount)
                     {
                         ret = w + w[0];
                         isCharEntry = false;
