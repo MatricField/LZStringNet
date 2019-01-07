@@ -1,8 +1,8 @@
 ﻿using System.Text;
 
-namespace LZStringNet
+namespace LZStringNet.IO
 {
-    public class BitWriter
+    public class BitEncoder : IEncoder
     {
         private readonly StringBuilder OutputStream;
 
@@ -12,7 +12,7 @@ namespace LZStringNet
 
         private int Buffer;
 
-        public BitWriter(StringBuilder stream, DataEncoding encoding)
+        public BitEncoder(StringBuilder stream, DataEncoding encoding)
         {
             OutputStream = stream;
             Encoding = encoding;

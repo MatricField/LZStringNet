@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace LZStringNet
+namespace LZStringNet.IO
 {
     public sealed class DataEncoding
     {

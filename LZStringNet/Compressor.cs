@@ -1,6 +1,6 @@
-﻿using System;
+﻿using LZStringNet.IO;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace LZStringNet
@@ -9,49 +9,29 @@ namespace LZStringNet
     {
         private const int INITIAL_SEGDICT_COUNT = 3;
 
-        private DataEncoding dataEncoding;
+        private IEncoder encoder;
 
-        private string uncompressed;
-
-        private StringBuilder compressed = new StringBuilder();
-
-        private BitWriter bitWriter;
-
-        public string Compressed { get; private set; }
-
-        public Compressor(string input, DataEncoding encoding)
+        public Compressor(IEncoder encoder)
         {
-            if(string.IsNullOrEmpty(input))
-            {
-                throw new ArgumentException("input is empty", nameof(input));
-            }
-            uncompressed = input;
-            dataEncoding = encoding;
-            bitWriter = new BitWriter(compressed, encoding);
+            this.encoder = encoder;
         }
 
-        public string Compress()
+        public void Compress(string uncompressed)
         {
-            if(null != Compressed)
-            {
-                throw new InvalidOperationException();
-            }
             foreach (var c in uncompressed)
             {
                 CompressNext(c);
             }
-            Flush();
-            Compressed = compressed.ToString();
-            return Compressed;
+            WriteSegment();
         }
 
         private Dictionary<string, int> segmentDict = new Dictionary<string, int>();
 
         private int SegmentDictCount => segmentDict.Count + INITIAL_SEGDICT_COUNT;
 
-        private int dictCapacity = 2;
+        private int dictCapacity = 4;
 
-        private int codePointWidth = 4;
+        private int codePointWidth = 2;
 
         private string segment = "";
 
@@ -73,6 +53,7 @@ namespace LZStringNet
             else
             {
                 WriteSegment();
+                AddToDictionary(newSeg);
                 segment = cstr;
             }
         }
@@ -95,27 +76,28 @@ namespace LZStringNet
                 var charCode = Convert.ToInt32(c);
                 if (charCode < byte.MaxValue)
                 {
-                    bitWriter.WriteBits(Masks.Char8Bit, width);
-                    bitWriter.WriteBits(charCode, 8);
+                    encoder.WriteBits(Masks.Char8Bit, width);
+                    encoder.WriteBits(charCode, 8);
                 }
                 else
                 {
-                    bitWriter.WriteBits(Masks.Char16Bit, width);
-                    bitWriter.WriteBits(charCode, 16);
+                    encoder.WriteBits(Masks.Char16Bit, width);
+                    encoder.WriteBits(charCode, 16);
                 }
                 newChars.Remove(segment);
                 Console.WriteLine($"Char: {Regex.Escape(c.ToString())}");
             }
             else
             {
-                bitWriter.WriteBits(segmentDict[segment], codePointWidth);
+                encoder.WriteBits(segmentDict[segment], codePointWidth);
                 Console.WriteLine($"Segment: {Regex.Escape(segment)}");
             }
         }
 
-        private void Flush()
+        public void MarkEndOfStream()
         {
-            throw new NotImplementedException();
+            encoder.WriteBits(Masks.EndOfStream, codePointWidth);
+            encoder.Flush();
         }
     }
 }

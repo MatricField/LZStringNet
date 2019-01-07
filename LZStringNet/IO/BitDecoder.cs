@@ -4,9 +4,10 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LZStringNet
+namespace LZStringNet.IO
 {
-    public class BitReader
+    public class BitDecoder:
+        IDecoder
     {
         private readonly IEnumerable<int> RawData;
 
@@ -18,7 +19,7 @@ namespace LZStringNet
 
         private int BitsInBuffer;
 
-        public BitReader(string input, DataEncoding encoding)
+        public BitDecoder(string input, DataEncoding encoding)
         {
             var rawData = new List<int>(input.Length);
             BitsInBufferMax = encoding.BitsPerChar;
