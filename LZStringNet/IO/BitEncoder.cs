@@ -23,13 +23,15 @@ namespace LZStringNet.IO
         {
             for (int bitsWritten = 0; bitsWritten != numBits;)
             {
-                if (BufferCapacity == 0)
-                {
-                    WriteBuffer();
-                }
                 var needToWrite = numBits - bitsWritten;
                 var bitsInBuffer = Encoding.BitsPerChar - BufferCapacity;
-                if (BufferCapacity <= needToWrite)
+                if (needToWrite < BufferCapacity)
+                {
+                    Buffer |= data << bitsInBuffer;
+                    BufferCapacity -= needToWrite;
+                    bitsWritten += needToWrite;
+                }
+                else
                 {
                     var mask = 0;
                     for (int i = 0; i < BufferCapacity; ++i)
@@ -40,13 +42,7 @@ namespace LZStringNet.IO
                     Buffer |= (data & mask) << bitsInBuffer;
                     data >>= BufferCapacity;
                     bitsWritten += BufferCapacity;
-                    BufferCapacity -= BufferCapacity;
-                }
-                else
-                {
-                    Buffer |= data << bitsInBuffer;
-                    BufferCapacity -= needToWrite;
-                    bitsWritten += needToWrite;
+                    WriteBuffer();
                 }
             }
         }

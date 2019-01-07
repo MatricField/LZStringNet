@@ -10,14 +10,17 @@ open LZStringNet.IO
 open LZStringNet.Algorithms
 open System.Net
 
-let ``encoding and decosing is compatible`` input =
+let testEncoding input =
+    let encodingBitWidths = List<int>()
+    let decodingBitWidths = List<int>()
     let buffer =
         let buffer = List<int>()
         let encoder =
             {
                 new IEncoder with
-                    member x.WriteBits(data, _) =
+                    member x.WriteBits(data, numbits) =
                         buffer.Add(data)
+                        encodingBitWidths.Add(numbits)
                         ()
                     member x.Flush() = ()
             }
@@ -30,7 +33,8 @@ let ``encoding and decosing is compatible`` input =
             let mutable iter = buffer.GetEnumerator()
             {
                 new IDecoder with     
-                    member x.ReadBits(_) =
+                    member x.ReadBits(numbits) =
+                        decodingBitWidths.Add(numbits)
                         iter.MoveNext() |> ignore
                         iter.Current
             }
@@ -38,7 +42,15 @@ let ``encoding and decosing is compatible`` input =
         let tmp = Decompressor(builder);
         tmp.Decompress(decoder)
         builder.ToString()
-    input = decompressed
+    (decompressed, (encodingBitWidths.ToArray(), encodingBitWidths.ToArray()))
+
+let ``encoded mseeage can be decoded`` input =
+    let (decompressed, _) = testEncoding input
+    decompressed = input
+
+let ``bitWidths match`` input =
+    let (_, (w1, w2)) = testEncoding input
+    Array.forall2 (fun x1 x2 -> x1 = x2) w1 w2
 
 let tryGetResponse (uri:string) =
     let request = WebRequest.Create(uri) :?> HttpWebRequest
@@ -80,10 +92,16 @@ type RandomWikiPageGenerator =
 
 [<Property(Arbitrary = [|typeof<RandomWikiPageGenerator>|])>]
 let ``can process random wiki page`` (uri: string, text) =
-    ``encoding and decosing is compatible``(text)
+    ``encoded mseeage can be decoded``(text)
 
 [<Property>]
-let ``compressor logics and decompressor is compatible`` (input: string) =
+let ``codes are correct`` (input: string) =
     let doTest() =
-        ``encoding and decosing is compatible`` input
+        ``encoded mseeage can be decoded`` input
+    (input <> null && input <> "") ==> doTest
+
+[<Property>]
+let ``widths are correct`` (input: string) =
+    let doTest() =
+        ``bitWidths match`` input
     (input <> null && input <> "") ==> doTest

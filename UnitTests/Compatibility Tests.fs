@@ -3,6 +3,7 @@ module Compatibility_Tests
 open System.IO
 open FsCheck.Xunit
 open Jint.Native
+open System
 
 type LZNew = LZStringNet.LZString
 
@@ -15,7 +16,13 @@ let LZString = (engine.GetValue "LZString").AsObject()
 let call name (str: string) =
     let func = (LZString.GetProperty name).Value
     let str' = if str=null then JsValue.Null else JsValue str 
-    (func.Invoke str').AsString()
+    let ret = func.Invoke str'
+    if ret.IsString() then
+        ret.AsString()
+    elif ret.IsNull() then
+        null
+    else
+        InvalidOperationException() |> raise
 
 [<Property>]
 let ``can decompress from base64`` (raw: string)=

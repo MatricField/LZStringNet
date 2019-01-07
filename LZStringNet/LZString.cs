@@ -13,20 +13,22 @@ namespace LZStringNet
 
         public static string CompressToBase64(string input)
         {
-            var compressed = DoCompress(input, PredefinedEncodings.Base64Encoding);
-            switch(compressed.Length % 4)
+            var builder = DoCompress(input, PredefinedEncodings.Base64Encoding);
+            switch (builder?.Length % 4)
             {
+                case null:
+                    break;
                 case 1:
-                    compressed.Append("===");
+                    builder.Append("===");
                     break;
                 case 2:
-                    compressed.Append("==");
+                    builder.Append("==");
                     break;
                 case 3:
-                    compressed.Append("=");
+                    builder.Append("=");
                     break;
             }
-            return compressed.ToString();
+            return builder?.ToString();
         }
 
         private static StringBuilder DoCompress(string input, DataEncoding encoding)
