@@ -8,6 +8,7 @@ namespace LZStringNet.Algorithms
 {
     public class Compressor
     {
+        // TODO: Investigate error in string of form 'abaa'
         private IEncoder encoder;
 
         public Compressor(IEncoder encoder)
@@ -32,7 +33,6 @@ namespace LZStringNet.Algorithms
         }
 
         private ShiftedDictionary<string, int> dictionary = new ShiftedDictionary<string, int>();
-
 
         private string segment = "";
 
@@ -63,6 +63,7 @@ namespace LZStringNet.Algorithms
         private void AddToDictionary(string newSeg)
         {
             dictionary.Add(newSeg, dictionary.Count);
+            dictionary.CheckCapacity();
         }
 
         private void WriteSegment()

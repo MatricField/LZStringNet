@@ -24,6 +24,10 @@ namespace LZStringNet.Algorithms
         public void Add(TKey key, TValue value)
         {
             data.Add(key, value);
+        }
+
+        public void CheckCapacity()
+        {
             if (Count == dictCapacity)
             {
                 CodePointWidth++;

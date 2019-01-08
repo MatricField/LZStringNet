@@ -14,7 +14,7 @@ namespace LZStringNet.IO
         public BitReversalTable BitReversalTable { get; }
 
         public DataEncoding(string alphabet, int bitsPerChar):
-            this(bitsPerChar, alphabet, GetReverseCodePage(alphabet), BitReversalTable.Get(bitsPerChar))
+            this(bitsPerChar, alphabet, GetReverseCodePage(alphabet), BitReversalTable.GetTable(bitsPerChar))
         {
 
         }

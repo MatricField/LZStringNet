@@ -53,6 +53,7 @@ namespace LZStringNet.Algorithms
         private void AddToDictionary(string segment)
         {
             reverseDictionary.Add(reverseDictionary.Count, segment);
+            reverseDictionary.CheckCapacity();
         }
 
         private bool endOfStreamReached;

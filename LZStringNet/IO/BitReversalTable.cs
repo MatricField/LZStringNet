@@ -27,30 +27,44 @@ namespace LZStringNet.IO
                 }
                 table[i] = reversed;
             }
-            var mask = 0;
-            for (int i = 0; i < bitWidth; ++i)
-            {
-                mask |= 1 << i;
-            }
             Table = table;
             BitWidth = bitWidth;
-            BitMask = mask;
+            BitMask = GetBitMask(bitWidth);
         }
 
         public int this[int val] => Table[val & BitMask];
 
-        private static Dictionary<int, BitReversalTable> Cache = new Dictionary<int, BitReversalTable>();
+        private static Dictionary<int, BitReversalTable> tableCache = new Dictionary<int, BitReversalTable>();
 
-        public static BitReversalTable Get(int bitWidth)
+        private static Dictionary<int, int> bitMaskCache = new Dictionary<int, int>();
+
+        public static int GetBitMask(int bitWidth)
         {
-            if (Cache.TryGetValue(bitWidth, out var ret))
+            if(bitMaskCache.TryGetValue(bitWidth, out var mask))
+            {
+                return mask;
+            }
+            else
+            {
+                mask = 0;
+                for (int i = 0; i < bitWidth; ++i)
+                {
+                    mask |= 1 << i;
+                }
+                return mask;
+            }
+        }
+
+        public static BitReversalTable GetTable(int bitWidth)
+        {
+            if (tableCache.TryGetValue(bitWidth, out var ret))
             {
                 return ret;
             }
             else
             {
                 ret = new BitReversalTable(bitWidth);
-                Cache[bitWidth] = ret;
+                tableCache[bitWidth] = ret;
                 return ret;
             }
         }

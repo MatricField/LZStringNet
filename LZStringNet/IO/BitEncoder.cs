@@ -4,52 +4,54 @@ namespace LZStringNet.IO
 {
     public class BitEncoder : IEncoder
     {
-        private readonly StringBuilder OutputStream;
+        private readonly StringBuilder output;
 
-        private readonly DataEncoding Encoding;
+        private readonly DataEncoding encoding;
 
-        private int BufferCapacity;
+        private int bitsInBuffer;
 
-        private int Buffer;
+        private int buffer;
 
         public BitEncoder(StringBuilder stream, DataEncoding encoding)
         {
-            OutputStream = stream;
-            Encoding = encoding;
-            BufferCapacity = encoding.BitsPerChar;
+            output = stream;
+            this.encoding = encoding;
+            bitsInBuffer = 0;
         }
 
         public void WriteBits(int data, int numBits)
         {
-            for (int bitsWritten = 0; bitsWritten != numBits;)
+            //copy lower x bit to buffer and flip buffer
+            for(var needToWrite = numBits; needToWrite != 0;)
             {
-                var needToWrite = numBits - bitsWritten;
-                var bitsInBuffer = Encoding.BitsPerChar - BufferCapacity;
-                if (needToWrite < BufferCapacity)
+                var capacity = encoding.BitsPerChar - bitsInBuffer;
+                if(capacity == 0)
                 {
-                    Buffer |= data << bitsInBuffer;
-                    BufferCapacity -= needToWrite;
-                    bitsWritten += needToWrite;
+                    WriteBuffer();
+                    capacity = encoding.BitsPerChar;
+                }
+                if (needToWrite <= capacity)
+                {
+                    buffer |= (data << bitsInBuffer);
+                    bitsInBuffer += needToWrite;
+                    needToWrite = 0;
                 }
                 else
                 {
-                    var mask = 0;
-                    for (int i = 0; i < BufferCapacity; ++i)
-                    {
-                        mask |= 1 << i;
-                    }
-                    
-                    Buffer |= (data & mask) << bitsInBuffer;
-                    data >>= BufferCapacity;
-                    bitsWritten += BufferCapacity;
-                    WriteBuffer();
+                    var mask = BitReversalTable.GetBitMask(capacity);
+                    var portion = (data & mask);
+                    var shifted = (portion << bitsInBuffer);
+                    buffer |= shifted;
+                    data >>= capacity;
+                    bitsInBuffer += capacity;
+                    needToWrite -= capacity;
                 }
             }
         }
 
         public void Flush()
         {
-            if(BufferCapacity != Encoding.BitsPerChar)
+            if(bitsInBuffer != 0)
             {
                 WriteBuffer();
             }
@@ -57,9 +59,9 @@ namespace LZStringNet.IO
 
         private void WriteBuffer()
         {
-            OutputStream.Append(Encoding.CodePage[Encoding.BitReversalTable[Buffer]]);
-            BufferCapacity = Encoding.BitsPerChar;
-            Buffer = 0;
+            output.Append(encoding.CodePage[encoding.BitReversalTable[buffer]]);
+            bitsInBuffer = 0;
+            buffer = 0;
         }
     }
 }
