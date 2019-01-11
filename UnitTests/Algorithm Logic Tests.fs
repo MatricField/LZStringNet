@@ -42,7 +42,7 @@ let testEncoding input =
         let tmp = Decompressor(builder);
         tmp.Decompress(decoder)
         builder.ToString()
-    (decompressed, (encodingBitWidths.ToArray(), encodingBitWidths.ToArray()))
+    (decompressed, (encodingBitWidths.ToArray(), decodingBitWidths.ToArray()))
 
 let ``encoded mseeage can be decoded`` input =
     let (decompressed, _) = testEncoding input

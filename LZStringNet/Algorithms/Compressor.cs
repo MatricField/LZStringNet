@@ -8,7 +8,7 @@ namespace LZStringNet.Algorithms
 {
     public class Compressor
     {
-        // TODO: Investigate error in string of form 'abaa'
+        // TODO: Investigate error in string of form 'G`%cabaa'
         private IEncoder encoder;
 
         public Compressor(IEncoder encoder)
